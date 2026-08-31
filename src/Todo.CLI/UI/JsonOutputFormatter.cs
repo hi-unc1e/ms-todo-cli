@@ -102,6 +102,7 @@ public class JsonOutputFormatter : IOutputFormatter
             ["Status"] = item.Status,
             ["Completed"] = item.Completed?.ToString("yyyy-MM-dd"),
             ["DueDate"] = item.DueDate?.ToString("yyyy-MM-dd"),
+            ["Created"] = item.Created?.ToString("yyyy-MM-dd"),
             ["ListId"] = item.ListId,
             ["DisplayText"] = noStatus ? item.Subject : item.ToString()
         };
