@@ -24,7 +24,8 @@ public class RemoveCommand : Command
         private static readonly Option<DateTime?> OlderThanOpt = new(["--older-than"], "Only items completed before this date.");
         private static readonly Option<bool> AllOpt = new(new[] { "--all", "-a" }, "Remove all items fitting the filter. You will be prompted before removal.");
         private static readonly Option<bool> CompletedOpt = new(new[] { "--completed", "-c" }, "Remove only completed items.");
-        
+        private static readonly Option<bool> YesOpt = new(new[] { "--yes", "-y" }, "Skip the confirmation prompt (for scripting).");
+
         public RemoveItemCommand(IServiceProvider serviceProvider) : base("item", "Deletes to do items.")
         {
             Add(IdArg);
@@ -32,7 +33,8 @@ public class RemoveCommand : Command
             Add(OlderThanOpt);
             Add(AllOpt);
             Add(CompletedOpt);
-            this.SetHandler(RemoveCommandHandler.Item.Create(serviceProvider), IdArg, ListOpt, OlderThanOpt, AllOpt, CompletedOpt);
+            Add(YesOpt);
+            this.SetHandler(RemoveCommandHandler.Item.Create(serviceProvider), IdArg, ListOpt, OlderThanOpt, AllOpt, CompletedOpt, YesOpt);
         }
     }
 

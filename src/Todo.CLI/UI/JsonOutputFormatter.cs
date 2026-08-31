@@ -98,6 +98,7 @@ public class JsonOutputFormatter : IOutputFormatter
             ["Id"] = item.Id,
             ["Subject"] = item.Subject,
             ["IsCompleted"] = item.IsCompleted,
+            ["IsImportant"] = item.IsImportant,
             ["Status"] = item.Status,
             ["Completed"] = item.Completed?.ToString("yyyy-MM-dd"),
             ["DueDate"] = item.DueDate?.ToString("yyyy-MM-dd"),

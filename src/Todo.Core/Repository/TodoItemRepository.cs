@@ -69,10 +69,19 @@ internal class TodoItemRepository : RepositoryBase, ITodoItemRepository
         if (lists?.Value is null) return [];
         var tasks = lists.Value
             .AsParallel()
-            .Select(list => (list, tasks: graphServiceClient.Me.Todo.Lists[list.Id].Tasks.GetAsync()))
-            .Select((input, _) => (input.list, tasks: input.tasks.GetAwaiter().GetResult()?.Value))
-            .Where(l => l.tasks is not null)
-            .SelectMany(l => l.tasks!.Select(t => (l.list, task: t)));
+            .Select(list =>
+            {
+                var allTasks = new List<Microsoft.Graph.Models.TodoTask>();
+                var page = graphServiceClient.Me.Todo.Lists[list.Id].Tasks.GetAsync().GetAwaiter().GetResult();
+                while (page != null)
+                {
+                    if (page.Value is not null) allTasks.AddRange(page.Value);
+                    if (page.OdataNextLink is null) break;
+                    page = graphServiceClient.Me.Todo.Lists[list.Id].Tasks.WithUrl(page.OdataNextLink).GetAsync().GetAwaiter().GetResult();
+                }
+                return (list, tasks: allTasks);
+            })
+            .SelectMany(l => l.tasks.Select(t => (l.list, task: t)));
 
         if (!includeCompleted)
         {
@@ -89,15 +98,26 @@ internal class TodoItemRepository : RepositoryBase, ITodoItemRepository
         if (lists?.Value is null) yield break;
         var tasks = lists.Value
             .Select(l => Task.Run(async () =>
-                (ListId: l.Id, Tasks: await graphServiceClient.Me.Todo.Lists[l.Id].Tasks.GetAsync())))
+            {
+                var firstPage = await graphServiceClient.Me.Todo.Lists[l.Id].Tasks.GetAsync();
+                var allTasks = new List<Microsoft.Graph.Models.TodoTask>();
+                var page = firstPage;
+                while (page != null)
+                {
+                    if (page.Value is not null) allTasks.AddRange(page.Value);
+                    if (page.OdataNextLink is null) break;
+                    page = await graphServiceClient.Me.Todo.Lists[l.Id].Tasks.WithUrl(page.OdataNextLink).GetAsync();
+                }
+                return (ListId: l.Id, Tasks: allTasks);
+            }))
             .ToList();
 
         while (tasks.Count > 0)
         {
             var task = await Task.WhenAny(tasks);
             tasks.Remove(task);
-            var (listId, taskResponse) = await task;
-            IEnumerable<TodoTask> items = taskResponse!.Value!;
+            var (listId, allTasks) = await task;
+            IEnumerable<Microsoft.Graph.Models.TodoTask> items = allTasks;
             if (!includeCompleted)
                 items = items.Where(t => t.Status is not TaskStatus.Completed);
             foreach (var todoTask in items)

@@ -36,9 +36,9 @@ public class RemoveCommandHandler
         }
     }
 
-    public class Item 
+    public class Item
     {
-        public static Func<string[], string, DateTime?, bool, bool, Task<int>> Create(IServiceProvider serviceProvider)
+        public static Func<string[], string, DateTime?, bool, bool, bool, Task<int>> Create(IServiceProvider serviceProvider)
         {
             var todoItemRepository = serviceProvider.GetRequiredService<ITodoItemRepository>();
             var todoListRepository = serviceProvider.GetRequiredService<ITodoListRepository>();
@@ -74,12 +74,12 @@ public class RemoveCommandHandler
         }
     }
 
-    private async Task<int> HandleItemAsync(string[] ids, string listName, DateTime? olderThan, bool removeAll, bool completedOnly)
+    private async Task<int> HandleItemAsync(string[] ids, string listName, DateTime? olderThan, bool removeAll, bool completedOnly, bool yes)
     {
         if(ids.Length > 0)
         {
             var items = await _todoItemRepository.ListAllAsync(includeCompleted: true);
-            return await RemoveAllItems(items.Where(i => ids.Contains(i.Id)).ToList());
+            return await RemoveAllItems(items.Where(i => ids.Contains(i.Id)).ToList(), yes);
         }
         else {
             // Retrieve items
@@ -109,8 +109,8 @@ public class RemoveCommandHandler
 
             return !removeAll
                 ? await RemoveSpecificItems(items)
-                : await RemoveAllItems(items);
-        }
+                : await RemoveAllItems(items, yes);
+    }
     }
 
     private async Task<int> RemoveSpecificItems(List<TodoItem> items)
@@ -143,19 +143,22 @@ public class RemoveCommandHandler
         }
     }
 
-    private async Task<int> RemoveAllItems(List<TodoItem> items)
+    private async Task<int> RemoveAllItems(List<TodoItem> items, bool yes = false)
     {
-        var message = items.Count < 50
-            ? "Are you sure you want to delete all items?" + Environment.NewLine +
-              string.Join(Environment.NewLine, items)
-            : $"Are you sure you want to delete all {items.Count} items?";
-
-        if (_userInteraction.Confirm(message))
+        if (!yes)
         {
-            await DeleteItems(items);
-            return 0;
+            var message = items.Count < 50
+                ? "Are you sure you want to delete all items?" + Environment.NewLine +
+                  string.Join(Environment.NewLine, items)
+                : $"Are you sure you want to delete all {items.Count} items?";
+
+            if (!_userInteraction.Confirm(message))
+            {
+                return 0;
+            }
         }
 
+        await DeleteItems(items);
         return 0;
     }
 
