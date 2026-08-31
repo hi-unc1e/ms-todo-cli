@@ -197,7 +197,7 @@ public class RemoveCommandTests
         var handler = RemoveCommandHandler.Item.Create(_serviceProvider);
 
         // Act
-        var result = await handler(Array.Empty<string>(), null, null, true, false, true);
+        var result = await handler(Array.Empty<string>(), null, null, true, false, false);
 
         // Assert
         Assert.Equal(0, result);
@@ -253,7 +253,7 @@ public class RemoveCommandTests
         var handler = RemoveCommandHandler.Item.Create(_serviceProvider);
 
         // Act
-        var result = await handler(new[] { "1", "2" }, null, null, false, false, true);
+        var result = await handler(new[] { "1", "2" }, null, null, false, false, false);
 
         // Assert
         Assert.Equal(0, result);
