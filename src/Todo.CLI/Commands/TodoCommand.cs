@@ -23,6 +23,7 @@ public class TodoCommand : RootCommand
         // Add subcommands
         Add(new AddCommand(serviceProvider));
         Add(new ListCommand(serviceProvider));
+        Add(new ListsCommand(serviceProvider));
         Add(new CompleteCommand(serviceProvider));
         Add(new RemoveCommand(serviceProvider));
     }

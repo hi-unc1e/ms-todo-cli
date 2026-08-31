@@ -66,4 +66,15 @@ public class InteractiveOutputFormatter : IOutputFormatter
         }
         return output.ToString();
     }
+
+    public string FormatLists(IEnumerable<TodoList> lists)
+    {
+        var output = new StringBuilder();
+        foreach (var list in lists)
+        {
+            output.AppendLine(list.Name);
+        }
+        Console.Write(output.ToString());
+        return output.ToString();
+    }
 } 
