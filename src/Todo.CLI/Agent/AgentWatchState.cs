@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Todo.CLI.Agent;
 
@@ -35,7 +36,7 @@ public static class AgentWatchStore
             try
             {
                 if (!File.Exists(Path)) return new Dictionary<string, AgentWatchEntry>();
-                return JsonSerializer.Deserialize<Dictionary<string, AgentWatchEntry>>(File.ReadAllText(Path))
+                return JsonSerializer.Deserialize(File.ReadAllText(Path), AgentWatchJsonContext.Default.DictionaryStringAgentWatchEntry)
                        ?? new Dictionary<string, AgentWatchEntry>();
             }
             catch
@@ -50,7 +51,13 @@ public static class AgentWatchStore
         lock (Lock)
         {
             Directory.CreateDirectory(System.IO.Path.GetDirectoryName(Path)!);
-            File.WriteAllText(Path, JsonSerializer.Serialize(states, new JsonSerializerOptions { WriteIndented = true }));
+            File.WriteAllText(Path, JsonSerializer.Serialize(states, typeof(Dictionary<string, AgentWatchEntry>),
+                new JsonSerializerOptions { WriteIndented = true, TypeInfoResolver = AgentWatchJsonContext.Default }));
         }
     }
+}
+
+[JsonSerializable(typeof(Dictionary<string, AgentWatchEntry>))]
+internal partial class AgentWatchJsonContext : JsonSerializerContext
+{
 }

@@ -193,12 +193,19 @@ public class AgentCommandHandler
             _userInteraction.ShowSuccess($"Agent task created: '{subject}' @ {listDisplayName} (id {taskId})");
 
             // Seed the baseline immediately: feedback given between send and the first poll is NOT swallowed.
-            var seeded = await _agentTaskRepository.GetSnapshotAsync(listId, taskId);
-            if (seeded.Snapshot is not null)
+            try
             {
-                var states0 = AgentWatchStore.Load();
-                states0[taskId] = SeedEntry(seeded.Snapshot);
-                AgentWatchStore.Save(states0);
+                var seeded = await _agentTaskRepository.GetSnapshotAsync(listId, taskId);
+                if (seeded.Snapshot is not null)
+                {
+                    var states0 = AgentWatchStore.Load();
+                    states0[taskId] = SeedEntry(seeded.Snapshot);
+                    AgentWatchStore.Save(states0);
+                }
+            }
+            catch (Exception seedEx)
+            {
+                _userInteraction.ShowSuccess($"Note: baseline not seeded ({seedEx.Message}); first poll will seed it.");
             }
 
             if (steps is { Length: > 0 })

@@ -4,7 +4,7 @@ namespace Todo.CLI.Agent;
 
 public static class AgentPolling
 {
-    public const string Version = "0.2.0";
+    public const string Version = "0.5.0"; // 并入主版本线: agent 子系统不再独立编号
 
     // Adaptive defaults per docs/agent-design.md
     public const int P1IntervalMin = 5;    // decision golden hour: every 5 min

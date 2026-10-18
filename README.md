@@ -64,7 +64,7 @@ dotnet publish src\Todo.CLI -c Release -r osx-arm64 -o .\src\publish
 dotnet publish src\Todo.CLI -c Release -r linux-x64 -o .\src\publish
 ```
 
-## Agent feedback subsystem (v0.2.0)
+## Agent feedback subsystem (v0.5.0)
 
 Send a rich decision request to the human and detect their answer — no external
 services, only native To Do structures (see `docs/agent-design.md`).
