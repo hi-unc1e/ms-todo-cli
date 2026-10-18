@@ -101,6 +101,27 @@ jobs:
             --self-contained true \
             -p:Version=${{ steps.ver.outputs.version }}
 
+      - name: Sign binary with fixed identity (macOS)
+        if: startsWith(matrix.rid, 'osx') && env.SIGN_P12 != ''
+        env:
+          SIGN_P12: ${{ secrets.MACOS_SIGNING_P12 }}
+          SIGN_PASS: ${{ secrets.MACOS_SIGNING_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$SIGN_P12" | base64 -d > /tmp/s.p12
+          KC=build.keychain-db
+          security create-keychain -p "$SIGN_PASS" "$KC"
+          security default-keychain -s "$KC"
+          security unlock-keychain -p "$SIGN_PASS" "$KC"
+          security import /tmp/s.p12 -k "$KC" -P "$SIGN_PASS" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$SIGN_PASS" "$KC"
+          codesign --force --sign "ms-todo-cli-signing" publish/todo
+          security default-keychain -s login.keychain-db
+          security delete-keychain "$KC"
+          rm -f /tmp/s.p12
+          echo "signed:"; codesign -d -r- publish/todo 2>&1 | tail -1
+
       - name: Add Linux desktop integration files
         if: startsWith(matrix.rid, 'linux')
         shell: bash
