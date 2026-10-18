@@ -411,7 +411,7 @@ public class AgentCommandHandler
         {
             var states = AgentWatchStore.Load();
             if (states.TryGetValue(taskId, out var known) && !string.IsNullOrEmpty(known.ListId))
-                return (taskId, known.ListId, known.Title ?? string.Empty);
+                return (taskId, known.ListId, string.Empty); // list name unknown from store; id-resolved anyway
             return await _agentTaskRepository.FindByIdAsync(taskId);
         }
         if (!string.IsNullOrWhiteSpace(title))
