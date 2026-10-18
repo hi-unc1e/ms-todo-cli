@@ -64,6 +64,28 @@ dotnet publish src\Todo.CLI -c Release -r osx-arm64 -o .\src\publish
 dotnet publish src\Todo.CLI -c Release -r linux-x64 -o .\src\publish
 ```
 
+## Agent feedback subsystem (v0.2.0)
+
+Send a rich decision request to the human and detect their answer — no external
+services, only native To Do structures (see `docs/agent-design.md`).
+
+```bash
+# 1) Send: HTML body + checklist options + reminder (client notifies the human)
+todo agent send "[Agent] Choose the deploy plan" \
+  --html-file decision.html \
+  --step "✅ Plan A: keep as-is" --step "✅ Plan B: add relay" \
+  --important --due-date 2026-10-19 --remind 20:00
+
+# 2) The human answers by checking a step or editing the body in any To Do app.
+
+# 3) Read the feedback back
+todo agent poll   --task-id <id>            # single check (cron-friendly)
+todo agent watch  --task-id <id> --json     # adaptive loop: 5min/1h -> hourly/24h -> daily
+```
+
+Poll exit codes: `0` feedback detected (diff printed), `1` none yet, `2` error/task deleted.
+The baseline is seeded at send time, so immediate human answers are never missed.
+
 ## Usage
 
 ### Commands

@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Threading;
 using System.Linq;
 
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 namespace Todo.CLI.Auth;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +14,12 @@ using Microsoft.Kiota.Abstractions.Authentication;
 static class TodoCliAuthenticationProviderFactory
 {
     public static IAuthenticationProvider GetAuthenticationProvider(IServiceProvider factory)
+    {
+        // Lazy: command-tree construction (todo --help etc.) must never touch the keychain.
+        return new LazyAuthenticationProvider(() => CreateInitialized(factory));
+    }
+
+    private static IAuthenticationProvider CreateInitialized(IServiceProvider factory)
     {
         var config = factory.GetRequiredService<TodoCliConfiguration>();
 
@@ -51,5 +61,26 @@ static class TodoCliAuthenticationProviderFactory
 
         return new ApiKeyAuthenticationProvider("Bearer " + result.AccessToken, "Authorization",
             ApiKeyAuthenticationProvider.KeyLocation.Header);
+    }
+}
+
+/// <summary>
+/// Defers the real provider (MSAL + keychain) until the first request is authenticated,
+/// so help/version and argument errors stay instant and credential-free.
+/// Thread-safe single initialization.
+/// </summary>
+internal class LazyAuthenticationProvider : IAuthenticationProvider
+{
+    private readonly Func<IAuthenticationProvider> _factory;
+    private volatile IAuthenticationProvider? _inner;
+
+    public LazyAuthenticationProvider(Func<IAuthenticationProvider> factory) => _factory = factory;
+
+    public Task AuthenticateRequestAsync(Microsoft.Kiota.Abstractions.RequestInformation request,
+        Dictionary<string, object>? additionalAuthenticationContext = null,
+        CancellationToken cancellationToken = default)
+    {
+        _inner ??= _factory();
+        return _inner.AuthenticateRequestAsync(request, additionalAuthenticationContext, cancellationToken);
     }
 }

@@ -26,5 +26,6 @@ public class TodoCommand : RootCommand
         Add(new ListsCommand(serviceProvider));
         Add(new CompleteCommand(serviceProvider));
         Add(new RemoveCommand(serviceProvider));
+        Add(new AgentCommand(serviceProvider));
     }
 }

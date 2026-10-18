@@ -16,7 +16,8 @@ public static class TodoDependencyInjectionExtensions
     {
         return services
             .AddTransient<ITodoListRepository, TodoListRepository>()
-            .AddTransient<ITodoItemRepository, TodoItemRepository>();
+            .AddTransient<ITodoItemRepository, TodoItemRepository>()
+            .AddTransient<IAgentTaskRepository, AgentTaskRepository>();
     }
 
     internal static TodoItem ToModel(this Microsoft.Graph.Models.TodoTask task, string? listId)
