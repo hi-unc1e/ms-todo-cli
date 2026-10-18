@@ -29,12 +29,33 @@ internal class TodoItemRepository : RepositoryBase, ITodoItemRepository
             Importance = item.IsImportant ? Importance.High : Importance.Normal
         };
 
+        var timeZone = GraphTimeZone.GetLocalIanaId();
+
         if (item.DueDate.HasValue)
         {
             newTask.DueDateTime = new DateTimeTimeZone
             {
                 DateTime = item.DueDate.Value.ToString("yyyy-MM-ddTHH:mm:ss"),
-                TimeZone = TimeZoneInfo.Local.Id
+                TimeZone = timeZone
+            };
+        }
+
+        if (item.Reminder.HasValue)
+        {
+            newTask.IsReminderOn = true;
+            newTask.ReminderDateTime = new DateTimeTimeZone
+            {
+                DateTime = item.Reminder.Value.ToString("yyyy-MM-ddTHH:mm:ss"),
+                TimeZone = timeZone
+            };
+        }
+
+        if (!string.IsNullOrWhiteSpace(item.Body))
+        {
+            newTask.Body = new ItemBody
+            {
+                Content = item.Body,
+                ContentType = BodyType.Text
             };
         }
 

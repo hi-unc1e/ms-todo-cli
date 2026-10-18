@@ -11,6 +11,8 @@ public class TodoItem
     public DateTime? Created { get; set; }
     public string? ListId { get; set; }
     public DateTime? DueDate { get; set; }
+    public DateTime? Reminder { get; set; }
+    public string? Body { get; set; }
 
     public override string ToString() => $"{Subject} - {Status} {(IsCompleted ? Completed?.ToString("yyyy-MM-dd") : string.Empty)}" + (DueDate.HasValue ? $" ({DueDate:MM-dd})" : string.Empty);
     public string ToString(bool noStatus) => noStatus ? Subject : ToString();

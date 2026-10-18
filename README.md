@@ -83,6 +83,8 @@ dotnet publish src\Todo.CLI -c Release -r linux-x64 -o .\src\publish
 | `--list <name>` | Target a specific list |
 | `--star` | Mark the item as important |
 | `--due-date <date>` | Set a due date (`yyyy-MM-dd` or `MM-dd`) |
+| `--remind <time>` | Set a reminder (`HH:mm`, or `yyyy-MM-dd HH:mm`). The To Do app notifies at that time |
+| `--note <text>` | Add a note (body) to the item |
 
 ### Examples
 
@@ -95,6 +97,12 @@ todo add item "Doctor appointment" --due-date 06-15
 
 # Add a starred item to a specific list
 todo add item "Important report" --star --list Work
+todo add item "Submit tax form" --due-date 2026-05-20 --remind 09:00 --note "Bring last year's copy"
+```
+
+> **Notes**
+> - Due dates and reminders are sent with your machine's IANA time zone (e.g. `Asia/Shanghai`), falling back to `TZ` or `Asia/Shanghai`.
+> - Not supported by the Microsoft Graph To Do API (thus by this CLI): adding to **My Day**, **recurrence**, and **file attachments**.
 
 # List all tasks
 todo list

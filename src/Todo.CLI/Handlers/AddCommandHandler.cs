@@ -36,7 +36,7 @@ public class AddCommandHandler
 
     public class Item
     {
-        public static Func<string, string, bool, string?, Task<int>> Create(IServiceProvider serviceProvider)
+        public static Func<string, string, bool, string?, string?, string?, Task<int>> Create(IServiceProvider serviceProvider)
         {
             var todoListRepository = serviceProvider.GetRequiredService<ITodoListRepository>();
             var todoItemRepository = serviceProvider.GetRequiredService<ITodoItemRepository>();
@@ -58,6 +58,27 @@ public class AddCommandHandler
 
         if (DateTime.TryParseExact(dueDateString, "MM-dd", null, System.Globalization.DateTimeStyles.None, out var partialDate))
             return new DateTime(currentYear, partialDate.Month, partialDate.Day);
+
+        return null;
+    }
+
+    internal static DateTime? ParseRemindDate(string? remindString, DateTime? dueDate)
+    {
+        if (string.IsNullOrWhiteSpace(remindString))
+            return null;
+
+        // HH:mm — anchored to the due date when given, otherwise today
+        if (DateTime.TryParseExact(remindString, "HH:mm", null, System.Globalization.DateTimeStyles.None, out var timeOnly))
+        {
+            var day = dueDate ?? DateTime.Today;
+            return new DateTime(day.Year, day.Month, day.Day, timeOnly.Hour, timeOnly.Minute, 0);
+        }
+
+        if (DateTime.TryParseExact(remindString, "yyyy-MM-dd HH:mm", null, System.Globalization.DateTimeStyles.None, out var spaceFull))
+            return spaceFull;
+
+        if (DateTime.TryParseExact(remindString, "yyyy-MM-ddTHH:mm", null, System.Globalization.DateTimeStyles.None, out var isoFull))
+            return isoFull;
 
         return null;
     }
@@ -86,7 +107,7 @@ public class AddCommandHandler
         }
     }
 
-    private async Task<int> HandleItemAsync(string subject, string listName, bool star, string? dueDateString)
+    private async Task<int> HandleItemAsync(string subject, string listName, bool star, string? dueDateString, string? remindString, string? note)
     {
         try
         {
@@ -100,6 +121,13 @@ public class AddCommandHandler
             if (dueDateString is not null && dueDate is null)
             {
                 _userInteraction.ShowError($"Invalid due date format. Use yyyy-MM-dd or MM-dd.");
+                return 1;
+            }
+
+            var remindAt = ParseRemindDate(remindString, dueDate);
+            if (remindString is not null && remindAt is null)
+            {
+                _userInteraction.ShowError($"Invalid remind format. Use HH:mm or yyyy-MM-dd HH:mm.");
                 return 1;
             }
 
@@ -129,7 +157,9 @@ public class AddCommandHandler
                 Subject = subject,
                 ListId = list.Id,
                 IsImportant = star,
-                DueDate = dueDate
+                DueDate = dueDate,
+                Reminder = remindAt,
+                Body = note
             });
 
             _userInteraction.ShowSuccess($"Item '{subject}' added to list '{list.Name}' successfully.");

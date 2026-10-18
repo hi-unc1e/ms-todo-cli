@@ -31,15 +31,19 @@ public class AddCommand : Command
         private static readonly Option<string> ListOption = new("--list", "The list to add the to do item to.");
         private static readonly Option<bool> StarOption = new("--star", "Stars (marks as important) the new to do item.");
         private static readonly Option<string> DueDateOption = new("--due-date", "The due date (yyyy-MM-dd or MM-dd).");
+        private static readonly Option<string> RemindOption = new("--remind", "Set a reminder (HH:mm, or yyyy-MM-dd HH:mm). The To Do app notifies at that time.");
+        private static readonly Option<string> NoteOption = new("--note", "A note (body) for the new to do item.");
 
-        public AddItemCommand(IServiceProvider serviceProvider) : base("item", "Adds a new to do item.")
+        public AddItemCommand(IServiceProvider serviceProvider) : base("item", "Adds a new to do item. (Not supported by the To Do API: My Day, recurrence, file attachments.)")
         {
             AddArgument(SubjectArgument);
             AddOption(ListOption);
             AddOption(StarOption);
             AddOption(DueDateOption);
+            AddOption(RemindOption);
+            AddOption(NoteOption);
 
-            this.SetHandler(AddCommandHandler.Item.Create(serviceProvider), SubjectArgument, ListOption, StarOption, DueDateOption);
+            this.SetHandler(AddCommandHandler.Item.Create(serviceProvider), SubjectArgument, ListOption, StarOption, DueDateOption, RemindOption, NoteOption);
         }
     }
 }
